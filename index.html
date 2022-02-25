@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Browser Info</title>
+    <style>
+        html {
+            background-color: #333;
+            color: #eee;
+        }
+        body {
+            font-family: sans-serif;
+            font-size: 11pt;
+        }
+        fieldset {
+            border: 1px solid #666;
+        }
+        fieldset legend {
+            color: #eee;
+            font-size: 90%;
+        }
+        fieldset + fieldset {
+            margin-top: 0.5em;
+        }
+        table {
+            border-collapse: collapse;
+            font-size: 90%;
+            line-height: 110%;
+            width: 100%;
+        }
+        table tr th {
+            border: 1px dashed #666;
+            font-weight: normal;
+            padding: 1px 4px;
+            text-align: left;
+            white-space: nowrap;
+            width: 15em;
+        }
+        table tr td {
+            border: 1px dashed #666;
+            padding: 1px 4px;
+            white-space: pre-line;
+        }
+        fieldset q {
+            color: #666;
+        }
+        fieldset q.ok {
+            color: #eee;
+        }
+        fieldset q.good {
+            color: #eee;
+            text-decoration: underline;
+        }
+        fieldset q::before,
+        fieldset q::after {
+            content: "";
+        }
+        fieldset q + q {
+            margin-left: 0.5em;
+        }
+        @media (hover: none)     { fieldset[name="style"] .hover .none     { color: #eee; } }
+        @media (hover: hover)    { fieldset[name="style"] .hover .hover    { color: #eee; } }
+        @media (pointer: none)   { fieldset[name="style"] .pointer .none   { color: #eee; } }
+        @media (pointer: coarse) { fieldset[name="style"] .pointer .coarse { color: #eee; } }
+        @media (pointer: fine)   { fieldset[name="style"] .pointer .fine   { color: #eee; } }
+        @media (any-hover: none)     { fieldset[name="style"] .any-hover .none     { color: #eee; } }
+        @media (any-hover: hover)    { fieldset[name="style"] .any-hover .hover    { color: #eee; } }
+        @media (any-pointer: none)   { fieldset[name="style"] .any-pointer .none   { color: #eee; } }
+        @media (any-pointer: coarse) { fieldset[name="style"] .any-pointer .coarse { color: #eee; } }
+        @media (any-pointer: fine)   { fieldset[name="style"] .any-pointer .fine   { color: #eee; } }
+        @media not all and (any-hover: none)     { fieldset[name="style"] .not-any-hover .none     { color: #eee; } }
+        @media not all and (any-hover: hover)    { fieldset[name="style"] .not-any-hover .hover    { color: #eee; } }
+        @media not all and (any-pointer: none)   { fieldset[name="style"] .not-any-pointer .none   { color: #eee; } }
+        @media not all and (any-pointer: coarse) { fieldset[name="style"] .not-any-pointer .coarse { color: #eee; } }
+        @media not all and (any-pointer: fine)   { fieldset[name="style"] .not-any-pointer .fine   { color: #eee; } }
+        @media (color)      { fieldset[name="style"] .color .color      { color: #eee; } }
+        @media (monochrome) { fieldset[name="style"] .color .monochrome { color: #eee; } }
+        @media (color-gamut: srgb)    { fieldset[name="style"] .color-gamut .srgb    { color: #eee; } }
+        @media (color-gamut: p3)      { fieldset[name="style"] .color-gamut .p3      { color: #eee; } }
+        @media (color-gamut: rec2020) { fieldset[name="style"] .color-gamut .rec2020 { color: #eee; } }
+        @media (display-mode: fullscreen) { fieldset[name="style"] .display-mode .fullscreen { color: #eee; } }
+        @media (display-mode: standalone) { fieldset[name="style"] .display-mode .standalone { color: #eee; } }
+        @media (display-mode: minimal-ui) { fieldset[name="style"] .display-mode .minimal-ui { color: #eee; } }
+        @media (display-mode: browser)    { fieldset[name="style"] .display-mode .browser    { color: #eee; } }
+        @media (orientation: portrait)  { fieldset[name="style"] .orientation .portrait  { color: #eee; } }
+        @media (orientation: landscape) { fieldset[name="style"] .orientation .landscape { color: #eee; } }
+        @media (prefers-color-scheme: light) { fieldset[name="style"] .prefers-color-scheme .light { color: #eee; } }
+        @media (prefers-color-scheme: dark)  { fieldset[name="style"] .prefers-color-scheme .dark  { color: #eee; } }
+        @media (prefers-reduced-motion: no-preference) { fieldset[name="style"] .prefers-reduced-motion .no-preference { color: #eee; } }
+        @media (prefers-reduced-motion: reduce)        { fieldset[name="style"] .prefers-reduced-motion .reduce        { color: #eee; } }
+        @supports (-webkit-touch-callout: none) { fieldset[name="style"] .webkit-touch-callout .none { color: #eee; } }
+    </style>
+</head>
+<body>
+    <fieldset name="agent">
+        <legend>User-Agent</legend>
+        <table></table>
+    </fieldset>
+    <fieldset name="media">
+        <legend>Media Capabilities</legend>
+        <table></table>
+    </fieldset>
+    <fieldset name="style">
+        <legend>Media Queries</legend>
+        <table>
+            <tr class="hover"><th>hover</th><td><q class="none">none</q><q class="hover">hover</q></td></tr>
+            <tr class="pointer"><th>pointer</th><td><q class="none">none</q><q class="coarse">coarse</q><q class="fine">fine</q></td></tr>
+            <tr class="any-hover"><th>any-hover</th><td><q class="none">none</q><q class="hover">hover</q></td></tr>
+            <tr class="any-pointer"><th>any-pointer</th><td><q class="none">none</q><q class="coarse">coarse</q><q class="fine">fine</q></td></tr>
+            <tr class="not-any-hover"><th>not all and any-hover</th><td><q class="none">none</q><q class="hover">hover</q></td></tr>
+            <tr class="not-any-pointer"><th>not all and any-pointer</th><td><q class="none">none</q><q class="coarse">coarse</q><q class="fine">fine</q></td></tr>
+            <tr class="color"><th>color</th><td><q class="color">color</q><q class="monochrome">monochrome</q></td></tr>
+            <tr class="color-gamut"><th>color-gamut</th><td><q class="srgb">srgb</q><q class="p3">p3</q><q class="rec2020">rec2020</q></td></tr>
+            <tr class="display-mode"><th>display-mode</th><td><q class="fullscreen">fullscreen</q><q class="standalone">standalone</q><q class="minimal-ui">minimal-ui</q><q class="browser">browser</q></td></tr>
+            <tr class="orientation"><th>orientation</th><td><q class="portrait">portrait</q><q class="landscape">landscape</q></td></tr>
+            <tr class="prefers-color-scheme"><th>prefers-color-scheme</th><td><q class="light">light</q><q class="dark">dark</q></td></tr>
+            <tr class="prefers-reduced-motion"><th>prefers-reduced-motion</th><td><q class="no-preference">no-preference</q><q class="reduce">reduce</q></td></tr>
+            <tr class="webkit-touch-callout"><th>-webkit-touch-callout</th><td><q class="none">none</q></td></tr>
+        </table>
+    </fieldset>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            /** @type {HTMLTableElement} */
+            const table = document.querySelector('[name="agent"] table');
+            const add = function(name, value) {
+                const tr = table.insertRow();
+                tr.appendChild(document.createElement('th')).textContent = name;
+                tr.insertCell().textContent = JSON.stringify(value);
+            };
+            ['platform', 'userAgent', 'vendor'].forEach(function(name) {
+                add('navigator.' + name, navigator[name]);
+            });
+            if (navigator.userAgentData) {
+                const lowEntropyHints  = ['brands', 'mobile', 'platform'];
+                const highEntropyHints = ['architecture', 'bitness', 'model', 'platform', 'platformVersion', 'uaFullVersion'];
+                const lowEntropyValues = lowEntropyHints.reduce(function(values, hint) {
+                    if (hint in navigator.userAgentData)
+                        values[hint] = navigator.userAgentData[hint];
+                    return values;
+                }, {});
+                Object.keys(lowEntropyValues).forEach(function(name) {
+                    const value = lowEntropyValues[name];
+                    add('navigator.userAgentData.' + name, value);
+                });
+                if (navigator.userAgentData.getHighEntropyValues) {
+                    navigator.userAgentData.getHighEntropyValues(highEntropyHints).then(function(values) {
+                        Object.keys(values).forEach(function(name) {
+                            if (lowEntropyValues[name])
+                                return;
+                            const value = values[name];
+                            if (value)
+                                add('navigator.userAgentData.' + name, value);
+                        });
+                    });
+                }
+            }
+            if (navigator.requestMediaKeySystemAccess || window.MSMediaKeys) {
+                const contentTypes = {
+                    'audio/mp4; codecs="ac-3"'                      : 'AC-3',
+                    'audio/mp4; codecs="mp4a.40.2"'                 : 'AAC-LC',
+                    'audio/mp4; codecs="mp4a.40.5"'                 : 'HE-AAC',
+                    'audio/mp4; codecs="mp4a.40.29"'                : 'HE-AAC v2',
+                    'audio/mp4; codecs="opus"'                      : 'Opus',
+                    'video/mp4; codecs="av01.0.31M.08"'             : 'AV1 Main Profile, Level Max, 8-bit',
+                    'video/mp4; codecs="av01.0.31M.10"'             : 'AV1 Main Profile, Level Max, 10-bit',
+                    'video/mp4; codecs="avc1.4d4028"'               : 'AVC Main Profile, Level 4.0',
+                    'video/mp4; codecs="avc1.640034"'               : 'AVC High Profile, Level 5.2',
+                    'video/mp4; codecs="hvc1.1.6.L153.90"'          : 'HEVC Main Profile, Level 5.1',
+                    'video/mp4; codecs="hvc1.2.4.L153.B1.0.0.1"'    : 'HEVC Main-10 Profile, Level 5.1',
+                    'video/webm; codecs="vp09.00.50.08"'            : 'VP9 Profile 0, Level 5.0',
+                    'video/webm; codecs="vp09.02.50.10.01.09.16.09"': 'VP9 Profile 2, Level 5.0, 10-bit',
+                };
+                const keySystems = ['com.apple.fps', 'com.microsoft.playready', 'com.widevine.alpha', 'org.w3.clearkey'];
+                const capabilities = ['supported', 'smooth', 'powerEfficient'];
+                /** @type {HTMLTableElement} */
+                const table = document.querySelector('[name="media"] table');
+                const noop = function() {};
+                Object.keys(contentTypes).forEach(function(contentType) {
+                    const tr = table.insertRow();
+                    const th = tr.appendChild(document.createElement('th'));
+                    const td = tr.insertCell();
+                    const m = /^(audio|video)\/(mp4|webm);/.exec(contentType);
+                    const track = m[1], format = m[2];
+                    th.textContent = contentType, th.title = contentTypes[contentType];
+                    if (navigator.mediaCapabilities) {
+                        const quotes = capabilities.reduce(function(map, cap) {
+                            map[cap] = td.appendChild(document.createElement('q'));
+                            map[cap].textContent = cap;
+                            return map;
+                        }, {});
+                        navigator.mediaCapabilities.decodingInfo(track === 'audio' ? {
+                            type: 'media-source',
+                            audio: {
+                                contentType: contentType,
+                                bitrate: 320000,
+                                channels: '5.1',
+                                samplerate: 48000,
+                            }
+                        } : {
+                            type: 'media-source',
+                            video: {
+                                contentType: contentType,
+                                bitrate: 8000000,
+                                width: 3840,
+                                height: 2160,
+                                framerate: 60,
+                            }
+                        }).then(function(result) {
+                            capabilities.forEach(function(cap) {
+                                if (result[cap])
+                                    quotes[cap].className = 'ok';
+                            });
+                        }).catch(noop);
+                    } else if (window.MSMediaKeys) {
+                        const supported = td.appendChild(document.createElement('q'));
+                        const acceleration = td.appendChild(document.createElement('q'));
+                        supported.textContent = 'supported';
+                        acceleration.textContent = 'decoder-hardware-acceleration';
+                        if (MediaSource.isTypeSupported(contentType))
+                            supported.className = 'ok';
+                        if (MSMediaKeys.isTypeSupportedWithFeatures('com.microsoft.playready', contentType + '; features="decoder-hardware-acceleration"'))
+                            acceleration.className = 'ok';
+                    }
+                    keySystems.forEach(function(keySystem) {
+                        const robustness = /widevine/.test(keySystem) ? 'SW_SECURE_CRYPTO' : '';
+                        const q = td.appendChild(document.createElement('q'));
+                        q.textContent = keySystem;
+                        if (navigator.requestMediaKeySystemAccess) {
+                            navigator.requestMediaKeySystemAccess(keySystem, [track === 'audio' ? {
+                                initDataTypes: [format === 'webm' ? 'webm' : 'cenc'],
+                                audioCapabilities: [{ contentType: contentType, robustness: robustness }],
+                            } : {
+                                initDataTypes: [format === 'webm' ? 'webm' : 'cenc'],
+                                videoCapabilities: [{ contentType: contentType, robustness: robustness }],
+                            }]).then(function(ksa) {
+                                q.className = 'ok';
+                                const config = ksa.getConfiguration();
+                                if (/playready/.test(keySystem)) {
+                                    (config.audioCapabilities[0] || config.videoCapabilities[0]).robustness = '3000';
+                                    navigator.requestMediaKeySystemAccess(keySystem, [config]).then(function(ksa) {
+                                        q.className = 'good';
+                                    }).catch(noop);
+                                }
+                                if (/widevine/.test(keySystem)) {
+                                    (config.audioCapabilities[0] || config.videoCapabilities[0]).robustness = 'HW_SECURE_ALL';
+                                    navigator.requestMediaKeySystemAccess(keySystem, [config]).then(function(ksa) {
+                                        q.className = 'good';
+                                    }).catch(noop);
+                                }
+                            }).catch(noop);
+                        } else if (window.MSMediaKeys) {
+                            if (MSMediaKeys.isTypeSupported(keySystem, contentType))
+                                q.className = 'ok';
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
