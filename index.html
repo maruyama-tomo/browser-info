@@ -138,17 +138,14 @@
                     return values;
                 }, {});
                 Object.keys(lowEntropyValues).forEach(function(name) {
-                    const value = lowEntropyValues[name];
-                    add('navigator.userAgentData.' + name, value);
+                    add('navigator.userAgentData.' + name, lowEntropyValues[name]);
                 });
                 if (navigator.userAgentData.getHighEntropyValues) {
                     navigator.userAgentData.getHighEntropyValues(highEntropyHints).then(function(values) {
                         Object.keys(values).forEach(function(name) {
-                            if (lowEntropyValues[name])
+                            if (name in lowEntropyValues)
                                 return;
-                            const value = values[name];
-                            if (value)
-                                add('navigator.userAgentData.' + name, value);
+                            add('navigator.userAgentData.' + name, values[name]);
                         });
                     });
                 }
