@@ -233,7 +233,7 @@
                                 const config = ksa.getConfiguration();
                                 if (/playready/.test(keySystem)) {
                                     (config.audioCapabilities[0] || config.videoCapabilities[0]).robustness = '3000';
-                                    navigator.requestMediaKeySystemAccess(keySystem, [config]).then(function(ksa) {
+                                    navigator.requestMediaKeySystemAccess(keySystem + '.recommendation', [config]).then(function(ksa) {
                                         q.className = 'good';
                                     }).catch(noop);
                                 }
