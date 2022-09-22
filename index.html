@@ -231,6 +231,8 @@
                             }]).then(function(ksa) {
                                 q.className = 'ok';
                                 const config = ksa.getConfiguration();
+                                delete config.distinctiveIdentifier;
+                                delete config.persistentState;
                                 if (/playready/.test(keySystem)) {
                                     (config.audioCapabilities[0] || config.videoCapabilities[0]).robustness = '3000';
                                     navigator.requestMediaKeySystemAccess(keySystem + '.recommendation', [config]).then(function(ksa) {
