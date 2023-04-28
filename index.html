@@ -85,6 +85,10 @@
         @media (orientation: landscape) { fieldset[name="style"] .orientation .landscape { color: #eee; } }
         @media (prefers-color-scheme: light) { fieldset[name="style"] .prefers-color-scheme .light { color: #eee; } }
         @media (prefers-color-scheme: dark)  { fieldset[name="style"] .prefers-color-scheme .dark  { color: #eee; } }
+        @media (prefers-contrast: no-preference) { fieldset[name="style"] .prefers-contrast .no-preference { color: #eee; } }
+        @media (prefers-contrast: more)          { fieldset[name="style"] .prefers-contrast .more          { color: #eee; } }
+        @media (prefers-contrast: less)          { fieldset[name="style"] .prefers-contrast .less          { color: #eee; } }
+        @media (prefers-contrast: custom)        { fieldset[name="style"] .prefers-contrast .custom        { color: #eee; } }
         @media (prefers-reduced-motion: no-preference) { fieldset[name="style"] .prefers-reduced-motion .no-preference { color: #eee; } }
         @media (prefers-reduced-motion: reduce)        { fieldset[name="style"] .prefers-reduced-motion .reduce        { color: #eee; } }
         @supports (-webkit-touch-callout: none) { fieldset[name="style"] .webkit-touch-callout .none { color: #eee; } }
@@ -113,43 +117,65 @@
             <tr class="display-mode"><th>display-mode</th><td><q class="fullscreen">fullscreen</q><q class="standalone">standalone</q><q class="minimal-ui">minimal-ui</q><q class="browser">browser</q></td></tr>
             <tr class="orientation"><th>orientation</th><td><q class="portrait">portrait</q><q class="landscape">landscape</q></td></tr>
             <tr class="prefers-color-scheme"><th>prefers-color-scheme</th><td><q class="light">light</q><q class="dark">dark</q></td></tr>
+            <tr class="prefers-contrast"><th>prefers-contrast</th><td><q class="no-preference">no-preference</q><q class="more">more</q><q class="less">less</q><q class="custom">custom</q></td></tr>
             <tr class="prefers-reduced-motion"><th>prefers-reduced-motion</th><td><q class="no-preference">no-preference</q><q class="reduce">reduce</q></td></tr>
             <tr class="webkit-touch-callout"><th>-webkit-touch-callout</th><td><q class="none">none</q></td></tr>
         </table>
     </fieldset>
+    <fieldset name="misc">
+        <legend>Miscellaneous</legend>
+        <table>
+            <tr><th>"ontouchend" in document</th><td id="ontouchend in document"></td></tr>
+            <tr><th>navigator.maxTouchPoints</th><td id="navigator.maxTouchPoints"></td></tr>
+            <tr><th>screen.width,height</th><td id="screen.width,height"></td></tr>
+            <tr><th>window.devicePixelRatio</th><td id="window.devicePixelRatio"></td></tr>
+            <tr><th>window.innerWidth,Height</th><td id="window.innerWidth,Height"></td></tr>
+        </table>
+    </fieldset>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
+            //#region User-Agent
             /** @type {HTMLTableElement} */
             const table = document.querySelector('[name="agent"] table');
-            const add = function(name, value) {
+            const add = function (name, value) {
                 const tr = table.insertRow();
                 tr.appendChild(document.createElement('th')).textContent = name;
                 tr.insertCell().textContent = JSON.stringify(value);
             };
-            ['platform', 'userAgent', 'vendor'].forEach(function(name) {
-                add('navigator.' + name, navigator[name]);
-            });
+            if (navigator.connection) {
+                add('navigator.connection.downlink', navigator.connection.downlink);
+                add('navigator.connection.rtt'     , navigator.connection.rtt     );
+                add('navigator.connection.saveData', navigator.connection.saveData);
+            }
+            add('navigator.platform' , navigator.platform );
+            add('navigator.userAgent', navigator.userAgent);
             if (navigator.userAgentData) {
                 const lowEntropyHints  = ['brands', 'mobile', 'platform'];
-                const highEntropyHints = ['architecture', 'bitness', 'model', 'platform', 'platformVersion', 'uaFullVersion'];
-                const lowEntropyValues = lowEntropyHints.reduce(function(values, hint) {
+                const highEntropyHints = ['architecture', 'bitness', 'model', 'platform', 'platformVersion', 'uaFullVersion', 'wow64', 'fullVersionList'];
+                const lowEntropyValues = lowEntropyHints.reduce(function (values, hint) {
                     if (hint in navigator.userAgentData)
                         values[hint] = navigator.userAgentData[hint];
                     return values;
                 }, {});
-                Object.keys(lowEntropyValues).forEach(function(name) {
+                Object.keys(lowEntropyValues).forEach(function (name) {
                     add('navigator.userAgentData.' + name, lowEntropyValues[name]);
                 });
                 if (navigator.userAgentData.getHighEntropyValues) {
-                    navigator.userAgentData.getHighEntropyValues(highEntropyHints).then(function(values) {
-                        Object.keys(values).forEach(function(name) {
+                    navigator.userAgentData.getHighEntropyValues(highEntropyHints).then(function (values) {
+                        Object.keys(values).forEach(function (name) {
                             if (name in lowEntropyValues)
                                 return;
                             add('navigator.userAgentData.' + name, values[name]);
                         });
+                        add('navigator.vendor', navigator.vendor);
                     });
+                } else {
+                    add('navigator.vendor', navigator.vendor);
                 }
             }
+            //#endregion
+
+            //#region Media Capabilities
             if (navigator.requestMediaKeySystemAccess || window.MSMediaKeys) {
                 const contentTypes = {
                     'audio/mp4; codecs="ac-3"'                      : 'AC-3',
@@ -170,8 +196,8 @@
                 const capabilities = ['supported', 'smooth', 'powerEfficient'];
                 /** @type {HTMLTableElement} */
                 const table = document.querySelector('[name="media"] table');
-                const noop = function() {};
-                Object.keys(contentTypes).forEach(function(contentType) {
+                const noop = function () {};
+                Object.keys(contentTypes).forEach(function (contentType) {
                     const tr = table.insertRow();
                     const th = tr.appendChild(document.createElement('th'));
                     const td = tr.insertCell();
@@ -179,7 +205,7 @@
                     const track = m[1], format = m[2];
                     th.textContent = contentType, th.title = contentTypes[contentType];
                     if (navigator.mediaCapabilities) {
-                        const quotes = capabilities.reduce(function(map, cap) {
+                        const quotes = capabilities.reduce(function (map, cap) {
                             map[cap] = td.appendChild(document.createElement('q'));
                             map[cap].textContent = cap;
                             return map;
@@ -201,8 +227,8 @@
                                 height: 2160,
                                 framerate: 60,
                             }
-                        }).then(function(result) {
-                            capabilities.forEach(function(cap) {
+                        }).then(function (result) {
+                            capabilities.forEach(function (cap) {
                                 if (result[cap])
                                     quotes[cap].className = 'ok';
                             });
@@ -217,7 +243,7 @@
                         if (MSMediaKeys.isTypeSupportedWithFeatures('com.microsoft.playready', contentType + '; features="decoder-hardware-acceleration"'))
                             acceleration.className = 'ok';
                     }
-                    keySystems.forEach(function(keySystem) {
+                    keySystems.forEach(function (keySystem) {
                         const robustness = /widevine/.test(keySystem) ? 'SW_SECURE_CRYPTO' : '';
                         const q = td.appendChild(document.createElement('q'));
                         q.textContent = keySystem;
@@ -228,22 +254,41 @@
                             } : {
                                 initDataTypes: [format === 'webm' ? 'webm' : 'cenc'],
                                 videoCapabilities: [{ contentType: contentType, robustness: robustness }],
-                            }]).then(function(ksa) {
+                            }]).then(function (access) {
+                                const config = access.getConfiguration();
+                                if (!config.audioCapabilities.length && !config.videoCapabilities.length)
+                                    throw new DOMException('Unsupported keySystem or supportedConfigurations.');
                                 q.className = 'ok';
-                                const config = ksa.getConfiguration();
                                 delete config.distinctiveIdentifier;
                                 delete config.persistentState;
                                 if (/playready/.test(keySystem)) {
                                     (config.audioCapabilities[0] || config.videoCapabilities[0]).robustness = '3000';
-                                    navigator.requestMediaKeySystemAccess(keySystem + '.recommendation', [config]).then(function(ksa) {
-                                        q.className = 'good';
+                                    navigator.requestMediaKeySystemAccess(keySystem + '.recommendation', [config]).then(function (a) {
+                                        const c = a.getConfiguration();
+                                        if (c.audioCapabilities.length || c.videoCapabilities.length)
+                                            q.className = 'good';
                                     }).catch(noop);
                                 }
                                 if (/widevine/.test(keySystem)) {
                                     (config.audioCapabilities[0] || config.videoCapabilities[0]).robustness = 'HW_SECURE_ALL';
-                                    navigator.requestMediaKeySystemAccess(keySystem, [config]).then(function(ksa) {
-                                        q.className = 'good';
+                                    navigator.requestMediaKeySystemAccess(keySystem, [config]).then(function (a) {
+                                        const c = a.getConfiguration();
+                                        if (c.audioCapabilities.length || c.videoCapabilities.length)
+                                            q.className = 'good';
                                     }).catch(noop);
+                                }
+                                return access.createMediaKeys();
+                            }).then(function (keys) {
+                                if (keys.getStatusForPolicy) {
+                                    Promise.all(['2.3', '2.2', '1.4', '1.0'].map(function (v) {
+                                        return keys.getStatusForPolicy({ minHdcpVersion: v }).then(function (status) {
+                                            return status === 'usable' ? v : undefined;
+                                        }).catch(noop);
+                                    })).then(function (statuses) {
+                                        const max = statuses.filter(function (s) { return !!s; })[0];
+                                        if (max)
+                                            q.title = 'HDCP: ' + max;
+                                    });
                                 }
                             }).catch(noop);
                         } else if (window.MSMediaKeys) {
@@ -253,6 +298,20 @@
                     });
                 });
             }
+            //#endregion
+
+            //#region Miscellaneous
+            document.getElementById('ontouchend in document').textContent   = 'ontouchend' in document;
+            document.getElementById('navigator.maxTouchPoints').textContent = navigator.maxTouchPoints;
+            document.getElementById('screen.width,height').textContent      = screen.width + 'x' + screen.height;
+            document.getElementById('window.devicePixelRatio').textContent  = window.devicePixelRatio;
+            document.getElementById('window.innerWidth,Height').textContent = window.innerWidth + 'x' + window.innerHeight;
+            window.addEventListener('resize', function () {
+                document.getElementById('screen.width,height').textContent      = screen.width + 'x' + screen.height;
+                document.getElementById('window.devicePixelRatio').textContent  = window.devicePixelRatio;
+                document.getElementById('window.innerWidth,Height').textContent = window.innerWidth + 'x' + window.innerHeight;
+            });
+            //#endregion
         });
     </script>
 </body>
