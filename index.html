@@ -11,6 +11,7 @@
         }
         body {
             font-family: sans-serif;
+            font-size: 11pt;
         }
         fieldset {
             border: 1px solid #666;
@@ -23,7 +24,7 @@
         }
         table {
             border-collapse: collapse;
-            font-size: 11pt;
+            font-size: 90%;
             line-height: 110%;
             width: 100%;
         }
@@ -56,6 +57,13 @@
         }
         fieldset q + q {
             margin-left: 0.5em;
+        }
+        fieldset q sup {
+            display: inline-block;
+            font-size: 80%;
+            line-height: 90%;
+            margin-left: 0.2em;
+            width: 1.5em;
         }
         @media (hover: none)     { fieldset[name="style"] .hover .none     { color: #eee; } }
         @media (hover: hover)    { fieldset[name="style"] .hover .hover    { color: #eee; } }
@@ -248,6 +256,8 @@
                         const q = td.appendChild(document.createElement('q'));
                         q.textContent = keySystem;
                         if (navigator.requestMediaKeySystemAccess) {
+                            const sup = MediaKeys.prototype.getStatusForPolicy && !/clearkey/.test(keySystem) ? q.appendChild(document.createElement('sup')) : undefined;
+                            sup && (sup.textContent = 'N/A');
                             navigator.requestMediaKeySystemAccess(keySystem, [track === 'audio' ? {
                                 initDataTypes: [format === 'webm' ? 'webm' : 'cenc'],
                                 audioCapabilities: [{ contentType: contentType, robustness: robustness }],
@@ -262,32 +272,41 @@
                                 delete config.distinctiveIdentifier;
                                 delete config.persistentState;
                                 if (/playready/.test(keySystem)) {
+                                    q.title = 'SL2000';
                                     (config.audioCapabilities[0] || config.videoCapabilities[0]).robustness = '3000';
                                     navigator.requestMediaKeySystemAccess(keySystem + '.recommendation', [config]).then(function (a) {
                                         const c = a.getConfiguration();
-                                        if (c.audioCapabilities.length || c.videoCapabilities.length)
+                                        if (c.audioCapabilities.length || c.videoCapabilities.length) {
                                             q.className = 'good';
+                                            q.title = 'SL3000';
+                                        }
                                     }).catch(noop);
                                 }
                                 if (/widevine/.test(keySystem)) {
-                                    (config.audioCapabilities[0] || config.videoCapabilities[0]).robustness = 'HW_SECURE_ALL';
+                                    q.title = 'L3';
+                                    config.audioCapabilities.length && (config.audioCapabilities[0].robustness = 'HW_SECURE_CRYPTO');
+                                    config.videoCapabilities.length && (config.videoCapabilities[0].robustness = 'HW_SECURE_ALL');
                                     navigator.requestMediaKeySystemAccess(keySystem, [config]).then(function (a) {
                                         const c = a.getConfiguration();
-                                        if (c.audioCapabilities.length || c.videoCapabilities.length)
+                                        if (c.audioCapabilities.length || c.videoCapabilities.length) {
                                             q.className = 'good';
+                                            q.title = c.videoCapabilities.length ? 'L1' : 'L2';
+                                        }
                                     }).catch(noop);
                                 }
                                 return access.createMediaKeys();
                             }).then(function (keys) {
-                                if (keys.getStatusForPolicy) {
+                                if (sup && keys.getStatusForPolicy) {
                                     Promise.all(['2.3', '2.2', '1.4', '1.0'].map(function (v) {
                                         return keys.getStatusForPolicy({ minHdcpVersion: v }).then(function (status) {
                                             return status === 'usable' ? v : undefined;
                                         }).catch(noop);
-                                    })).then(function (statuses) {
-                                        const max = statuses.filter(function (s) { return !!s; })[0];
-                                        if (max)
-                                            q.title = 'HDCP: ' + max;
+                                    })).then(function (versions) {
+                                        const v = versions.filter(function (v) { return !!v; })[0];
+                                        if (v) {
+                                            sup.textContent = v;
+                                            sup.title = 'HDCP ' + v;
+                                        }
                                     });
                                 }
                             }).catch(noop);
