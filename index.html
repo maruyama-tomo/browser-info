@@ -252,6 +252,7 @@
                             acceleration.className = 'ok';
                     }
                     keySystems.forEach(function (keySystem) {
+                        const initDataType = /fps/.test(keySystem) ? 'skd' : format === 'webm' ? 'webm' : 'cenc';
                         const robustness = /widevine/.test(keySystem) ? 'SW_SECURE_CRYPTO' : '';
                         const q = td.appendChild(document.createElement('q'));
                         q.textContent = keySystem;
@@ -259,10 +260,10 @@
                             const sup = MediaKeys.prototype.getStatusForPolicy && !/clearkey/.test(keySystem) ? q.appendChild(document.createElement('sup')) : undefined;
                             sup && (sup.textContent = 'N/A');
                             navigator.requestMediaKeySystemAccess(keySystem, [track === 'audio' ? {
-                                initDataTypes: [format === 'webm' ? 'webm' : 'cenc'],
+                                initDataTypes: [initDataType],
                                 audioCapabilities: [{ contentType: contentType, robustness: robustness }],
                             } : {
-                                initDataTypes: [format === 'webm' ? 'webm' : 'cenc'],
+                                initDataTypes: [initDataType],
                                 videoCapabilities: [{ contentType: contentType, robustness: robustness }],
                             }]).then(function (access) {
                                 const config = access.getConfiguration();
