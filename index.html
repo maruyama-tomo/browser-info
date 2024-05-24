@@ -185,138 +185,165 @@
 
             //#region Media Capabilities
             if (navigator.requestMediaKeySystemAccess || window.MSMediaKeys) {
-                const contentTypes = {
-                    'audio/mp4; codecs="ac-3"'                      : 'AC-3',
-                    'audio/mp4; codecs="mp4a.40.2"'                 : 'AAC-LC',
-                    'audio/mp4; codecs="mp4a.40.5"'                 : 'HE-AAC',
-                    'audio/mp4; codecs="mp4a.40.29"'                : 'HE-AAC v2',
-                    'audio/mp4; codecs="opus"'                      : 'Opus',
-                    'video/mp4; codecs="av01.0.08M.08"'             : 'AV1 Main Profile, Level 4.0',
-                    'video/mp4; codecs="av01.0.13M.08"'             : 'AV1 Main Profile, Level 5.1',
-                    'video/mp4; codecs="av01.0.08M.10"'             : 'AV1 Main Profile, Level 4.0, 10-bit',
-                    'video/mp4; codecs="av01.0.13M.10"'             : 'AV1 Main Profile, Level 5.1, 10-bit',
-                    'video/mp4; codecs="avc1.4d4028"'               : 'AVC Main Profile, Level 4.0',
-                    'video/mp4; codecs="avc1.640034"'               : 'AVC High Profile, Level 5.2',
-                    'video/mp4; codecs="hvc1.1.6.L153.90"'          : 'HEVC Main Profile, Level 5.1',
-                    'video/mp4; codecs="hvc1.2.4.L153.B1.0.0.1"'    : 'HEVC Main 10 Profile, Level 5.1',
-                    'video/webm; codecs="vp09.00.50.08"'            : 'VP9 Profile 0, Level 5.0',
-                    'video/webm; codecs="vp09.02.50.10.01.09.16.09"': 'VP9 Profile 2, Level 5.0, 10-bit',
+                /**
+                 * @type {Record<string,
+                 *   { type: "audio", formats: ("mp4" | "webm")[], profiles: Record<string, { bitrate: number, channels: number | string, samplerate: number, params: string }> } |
+                 *   { type: "video", formats: ("mp4" | "webm")[], profiles: Record<string, { bitrate: number, width: number, height: number, framerate: number, params: string }> }
+                 * >}
+                 */
+                const codecs = {
+                    'AC-3': { type: 'audio', formats: ['mp4'], profiles: {
+                        ''                  : { bitrate:   320000, channels: '5.1', samplerate: 48000, params: 'ac-3' },
+                    } },
+                    'AAC' : { type: 'audio', formats: ['mp4'], profiles: {
+                        'AAC-LC'            : { bitrate:   320000, channels:     2, samplerate: 48000, params: 'mp4a.40.2'  },
+                        'HE-AAC'            : { bitrate:    64000, channels:     2, samplerate: 48000, params: 'mp4a.40.5'  },
+                        'HE-AAC v2'         : { bitrate:    32000, channels:     2, samplerate: 48000, params: 'mp4a.40.29' },
+                    } },
+                    'Opus': { type: 'audio', formats: ['mp4', 'webm'], profiles: {
+                        ''                  : { bitrate:   320000, channels:     2, samplerate: 48000, params: 'opus' },
+                    } },
+                    'AV1' : { type: 'video', formats: ['mp4', 'webm'], profiles: {
+                        'Main @ 4.0'        : { bitrate:  1000000, width: 1920, height: 1080, framerate: 30, params: 'av01.0.08M.08' },
+                        'Main @ 5.1'        : { bitrate:  8000000, width: 3840, height: 2160, framerate: 60, params: 'av01.0.13M.08' },
+                        'Main @ 4.0 HDR'    : { bitrate:  1000000, width: 1920, height: 1080, framerate: 30, params: 'av01.0.08M.10' },
+                        'Main @ 5.1 HDR'    : { bitrate:  8000000, width: 3840, height: 2160, framerate: 60, params: 'av01.0.13M.10' },
+                    } },
+                    'AVC' : { type: 'video', formats: ['mp4'], profiles: {
+                        'Main @ 4.0'        : { bitrate:  2000000, width: 1920, height: 1080, framerate: 30, params: 'avc1.4d4028' },
+                        'High @ 5.1'        : { bitrate: 12000000, width: 3840, height: 2160, framerate: 30, params: 'avc1.640033' },
+                        'High @ 5.2'        : { bitrate: 16000000, width: 3840, height: 2160, framerate: 30, params: 'avc1.640033' },
+                    } },
+                    'HEVC': { type: 'video', formats: ['mp4'], profiles: {
+                        'Main @ 5.1'        : { bitrate:  8000000, width: 3840, height: 2160, framerate: 60, params: 'hvc1.1.6.L153.90' },
+                        'Main 10 @ 5.1 HDR' : { bitrate:  8000000, width: 3840, height: 2160, framerate: 60, params: 'hvc1.2.4.L153.B0' },
+                    } },
+                    'VP9' : { type: 'video', formats: ['mp4', 'webm'], profiles: {
+                        'Profile 0, 5.0'    : { bitrate:  8000000, width: 3840, height: 2160, framerate: 60, params: 'vp09.00.50.08'             },
+                        'Profile 2, 5.0 HDR': { bitrate:  8000000, width: 3840, height: 2160, framerate: 60, params: 'vp09.02.50.10.01.09.16.09' },
+                    } },
                 };
                 const keySystems = ['com.apple.fps', 'com.microsoft.playready', 'com.widevine.alpha', 'org.w3.clearkey'];
                 const capabilities = ['supported', 'smooth', 'powerEfficient'];
                 /** @type {HTMLTableElement} */
                 const table = document.querySelector('[name="media"] table');
                 const noop = function () {};
-                Object.keys(contentTypes).forEach(function (contentType) {
-                    const tr = table.insertRow();
-                    const th = tr.appendChild(document.createElement('th'));
-                    const td = tr.insertCell();
-                    const m = /^(audio|video)\/(mp4|webm);/.exec(contentType);
-                    const track = m[1], format = m[2];
-                    th.textContent = contentType, th.title = contentTypes[contentType];
-                    if (navigator.mediaCapabilities) {
-                        const quotes = capabilities.reduce(function (map, cap) {
-                            map[cap] = td.appendChild(document.createElement('q'));
-                            map[cap].textContent = cap;
-                            return map;
-                        }, {});
-                        navigator.mediaCapabilities.decodingInfo(track === 'audio' ? {
-                            type: 'media-source',
-                            audio: {
-                                contentType: contentType,
-                                bitrate: 320000,
-                                channels: '5.1',
-                                samplerate: 48000,
-                            }
-                        } : {
-                            type: 'media-source',
-                            video: {
-                                contentType: contentType,
-                                bitrate: 8000000,
-                                width: 3840,
-                                height: 2160,
-                                framerate: 60,
-                            }
-                        }).then(function (result) {
-                            capabilities.forEach(function (cap) {
-                                if (result[cap])
-                                    quotes[cap].className = 'ok';
-                            });
-                        }).catch(noop);
-                    } else if (window.MSMediaKeys) {
-                        const supported = td.appendChild(document.createElement('q'));
-                        const acceleration = td.appendChild(document.createElement('q'));
-                        supported.textContent = 'supported';
-                        acceleration.textContent = 'decoder-hardware-acceleration';
-                        if (MediaSource.isTypeSupported(contentType))
-                            supported.className = 'ok';
-                        if (MSMediaKeys.isTypeSupportedWithFeatures('com.microsoft.playready', contentType + '; features="decoder-hardware-acceleration"'))
-                            acceleration.className = 'ok';
-                    }
-                    keySystems.forEach(function (keySystem) {
-                        const initDataType = /fps/.test(keySystem) ? 'skd' : format === 'webm' ? 'webm' : 'cenc';
-                        const robustness = /widevine/.test(keySystem) ? 'SW_SECURE_CRYPTO' : '';
-                        const q = td.appendChild(document.createElement('q'));
-                        q.textContent = keySystem;
-                        if (navigator.requestMediaKeySystemAccess) {
-                            const sup = MediaKeys.prototype.getStatusForPolicy && !/clearkey/.test(keySystem) ? q.appendChild(document.createElement('sup')) : undefined;
-                            sup && (sup.textContent = 'N/A');
-                            navigator.requestMediaKeySystemAccess(keySystem, [track === 'audio' ? {
-                                initDataTypes: [initDataType],
-                                audioCapabilities: [{ contentType: contentType, robustness: robustness }],
-                            } : {
-                                initDataTypes: [initDataType],
-                                videoCapabilities: [{ contentType: contentType, robustness: robustness }],
-                            }]).then(function (access) {
-                                const config = access.getConfiguration();
-                                if (!config.audioCapabilities.length && !config.videoCapabilities.length)
-                                    throw new DOMException('Unsupported keySystem or supportedConfigurations.');
-                                q.className = 'ok';
-                                delete config.distinctiveIdentifier;
-                                delete config.persistentState;
-                                if (/playready/.test(keySystem)) {
-                                    q.title = 'SL2000';
-                                    (config.audioCapabilities[0] || config.videoCapabilities[0]).robustness = '3000';
-                                    navigator.requestMediaKeySystemAccess(keySystem + '.recommendation', [config]).then(function (a) {
-                                        const c = a.getConfiguration();
-                                        if (c.audioCapabilities.length || c.videoCapabilities.length) {
-                                            q.className = 'good';
-                                            q.title = 'SL3000';
-                                        }
-                                    }).catch(noop);
-                                }
-                                if (/widevine/.test(keySystem)) {
-                                    q.title = 'L3';
-                                    config.audioCapabilities.length && (config.audioCapabilities[0].robustness = 'HW_SECURE_CRYPTO');
-                                    config.videoCapabilities.length && (config.videoCapabilities[0].robustness = 'HW_SECURE_ALL');
-                                    navigator.requestMediaKeySystemAccess(keySystem, [config]).then(function (a) {
-                                        const c = a.getConfiguration();
-                                        if (c.audioCapabilities.length || c.videoCapabilities.length) {
-                                            q.className = 'good';
-                                            q.title = c.videoCapabilities.length ? 'L1' : 'L2';
-                                        }
-                                    }).catch(noop);
-                                }
-                                return access.createMediaKeys();
-                            }).then(function (keys) {
-                                if (sup && keys.getStatusForPolicy) {
-                                    Promise.all(['2.3', '2.2', '1.4', '1.0'].map(function (v) {
-                                        return keys.getStatusForPolicy({ minHdcpVersion: v }).then(function (status) {
-                                            return status === 'usable' ? v : undefined;
-                                        }).catch(noop);
-                                    })).then(function (versions) {
-                                        const v = versions.filter(function (v) { return !!v; })[0];
-                                        if (v) {
-                                            sup.textContent = v;
-                                            sup.title = 'HDCP ' + v;
-                                        }
+                Object.keys(codecs).forEach(function (name) {
+                    const codec = codecs[name];
+                    codec.formats.forEach(function (format) {
+                        Object.keys(codec.profiles).forEach(function (desc) {
+                            const profile = codec.profiles[desc];
+                            const contentType = codec.type + '/' + format + '; codecs="' + profile.params + '"';
+                            const tr = table.insertRow();
+                            const th = tr.appendChild(document.createElement('th'));
+                            const td = tr.insertCell();
+                            th.textContent = contentType, th.title = desc ? desc.indexOf(name) < 0 ? name + ' ' + desc : desc : name;
+                            if (navigator.mediaCapabilities) {
+                                const quotes = capabilities.reduce(function (map, cap) {
+                                    map[cap] = td.appendChild(document.createElement('q'));
+                                    map[cap].textContent = cap;
+                                    return map;
+                                }, {});
+                                navigator.mediaCapabilities.decodingInfo(codec.type === 'audio' ? {
+                                    type: 'media-source',
+                                    audio: {
+                                        contentType: contentType,
+                                        bitrate: profile.bitrate,
+                                        channels: profile.channels,
+                                        samplerate: profile.samplerate,
+                                    }
+                                } : {
+                                    type: 'media-source',
+                                    video: {
+                                        contentType: contentType,
+                                        bitrate: profile.bitrate,
+                                        width: profile.width,
+                                        height: profile.height,
+                                        framerate: profile.framerate,
+                                    }
+                                }).then(function (result) {
+                                    capabilities.forEach(function (cap) {
+                                        if (result[cap])
+                                            quotes[cap].className = 'ok';
                                     });
+                                }).catch(noop);
+                            } else if (window.MSMediaKeys) {
+                                const supported = td.appendChild(document.createElement('q'));
+                                const acceleration = td.appendChild(document.createElement('q'));
+                                supported.textContent = 'supported';
+                                acceleration.textContent = 'decoder-hardware-acceleration';
+                                if (MediaSource.isTypeSupported(contentType))
+                                    supported.className = 'ok';
+                                if (MSMediaKeys.isTypeSupportedWithFeatures('com.microsoft.playready', contentType + '; features="decoder-hardware-acceleration"'))
+                                    acceleration.className = 'ok';
+                            }
+                            keySystems.forEach(function (keySystem) {
+                                const initDataTypes = /fps/.test(keySystem) ? ['skd', 'sinf'] : format === 'webm' ? ['cenc', 'webm'] : ['cenc'];
+                                const robustness = /widevine/.test(keySystem) ? 'SW_SECURE_CRYPTO' : '';
+                                const q = td.appendChild(document.createElement('q'));
+                                q.textContent = keySystem;
+                                if (navigator.requestMediaKeySystemAccess) {
+                                    const sup = MediaKeys.prototype.getStatusForPolicy && !/clearkey/.test(keySystem) ? q.appendChild(document.createElement('sup')) : undefined;
+                                    sup && (sup.textContent = 'N/A');
+                                    navigator.requestMediaKeySystemAccess(keySystem, [codec.type === 'audio' ? {
+                                        initDataTypes: initDataTypes,
+                                        audioCapabilities: [{ contentType: contentType, robustness: robustness }],
+                                    } : {
+                                        initDataTypes: initDataTypes,
+                                        videoCapabilities: [{ contentType: contentType, robustness: robustness }],
+                                    }]).then(function (access) {
+                                        const config = access.getConfiguration();
+                                        if (!config.audioCapabilities.length && !config.videoCapabilities.length)
+                                            throw new DOMException('Unsupported keySystem or supportedConfigurations.');
+                                        const types = config.initDataTypes.join(', ');
+                                        q.className = 'ok', q.title = types;
+                                        delete config.distinctiveIdentifier;
+                                        delete config.persistentState;
+                                        if (/playready/.test(keySystem)) {
+                                            q.title = types + ' (SL2000)';
+                                            (config.audioCapabilities[0] || config.videoCapabilities[0]).robustness = '3000';
+                                            navigator.requestMediaKeySystemAccess(keySystem + '.recommendation', [config]).then(function (a) {
+                                                const c = a.getConfiguration();
+                                                if (c.audioCapabilities.length || c.videoCapabilities.length) {
+                                                    q.className = 'good';
+                                                    q.title = types + ' (SL3000)';
+                                                }
+                                            }).catch(noop);
+                                        }
+                                        if (/widevine/.test(keySystem)) {
+                                            q.title = types + ' (L3)';
+                                            config.audioCapabilities.length && (config.audioCapabilities[0].robustness = 'HW_SECURE_CRYPTO');
+                                            config.videoCapabilities.length && (config.videoCapabilities[0].robustness = 'HW_SECURE_ALL');
+                                            navigator.requestMediaKeySystemAccess(keySystem, [config]).then(function (a) {
+                                                const c = a.getConfiguration();
+                                                if (c.audioCapabilities.length || c.videoCapabilities.length) {
+                                                    q.className = 'good';
+                                                    q.title = types + ' (' + (c.videoCapabilities.length ? 'L1' : 'L2') + ')';
+                                                }
+                                            }).catch(noop);
+                                        }
+                                        return access.createMediaKeys();
+                                    }).then(function (keys) {
+                                        if (sup && keys.getStatusForPolicy) {
+                                            Promise.all(['2.3', '2.2', '1.4', '1.0'].map(function (v) {
+                                                return keys.getStatusForPolicy({ minHdcpVersion: v }).then(function (status) {
+                                                    return status === 'usable' ? v : undefined;
+                                                }).catch(noop);
+                                            })).then(function (versions) {
+                                                const v = versions.filter(function (v) { return !!v; })[0];
+                                                if (v) {
+                                                    sup.textContent = v;
+                                                    sup.title = 'HDCP ' + v;
+                                                }
+                                            });
+                                        }
+                                    }).catch(noop);
+                                } else if (window.MSMediaKeys) {
+                                    if (MSMediaKeys.isTypeSupported(keySystem, contentType))
+                                        q.className = 'ok';
                                 }
-                            }).catch(noop);
-                        } else if (window.MSMediaKeys) {
-                            if (MSMediaKeys.isTypeSupported(keySystem, contentType))
-                                q.className = 'ok';
-                        }
+                            });
+                        });
                     });
                 });
             }
