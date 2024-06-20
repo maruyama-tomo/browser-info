@@ -159,7 +159,7 @@
             add('navigator.userAgent', navigator.userAgent);
             if (navigator.userAgentData) {
                 const lowEntropyHints  = ['brands', 'mobile', 'platform'];
-                const highEntropyHints = ['architecture', 'bitness', 'model', 'platform', 'platformVersion', 'uaFullVersion', 'wow64', 'fullVersionList'];
+                const highEntropyHints = ['architecture', 'bitness', 'formFactors', 'fullVersionList', 'model', 'platform', 'platformVersion', 'uaFullVersion', 'wow64'];
                 const lowEntropyValues = lowEntropyHints.reduce(function (values, hint) {
                     if (hint in navigator.userAgentData)
                         values[hint] = navigator.userAgentData[hint];
